@@ -43,16 +43,36 @@ object Inquirer {
         val rating: Int = data["rating"].asInt
     }
 
-    suspend fun getUserInfo(idOrUserName: String): UserInfo? {
+    class AlertException(val innerMessage: String) : Exception("API失效")
+
+    suspend fun getUserInfo(idOrUserName: String, isId: Boolean = false): UserInfo {
         val path = "user/info"
-        val httpResponse = getResponse(path, Pair("user", idOrUserName)) ?: return null
+        val httpResponse = getResponse(path, Pair(if (isId) "usercode" else "user", idOrUserName))
         val response = Gson().fromJson(httpResponse.body<String>(), JsonObject::class.java)
-        if (response["status"].asInt != 0) return null
-        val data = response["content"].asJsonObject["account_info"].asJsonObject
-        return UserInfo(data)
+        return checkStatus(response) {
+            val data = response["content"].asJsonObject["account_info"].asJsonObject
+            UserInfo(data)
+        }
     }
 
-    private suspend fun getResponse(path: String, vararg params: Pair<String, Any>): HttpResponse? {
+    private fun <T> checkStatus(response: JsonObject, run: () -> T): T {
+        when (response["status"].asInt) {
+            0 -> return run()
+
+            -1, -2, -3 -> throw Exception("账号信息未找到")
+            -4 -> throw Exception("有多个重名账号")
+            -5, -6, -7 -> throw Exception("未找到歌曲")
+            -8 -> throw Exception("太多相关歌曲，请修改指令")
+            -14 -> throw Exception("这首歌没有Beyond难度")
+            -15 -> throw Exception("尚未游玩此歌曲")
+            -16 -> throw Exception("查询账号被屏蔽")
+            -17 -> throw Exception("查询B30失败")
+            -23 -> throw Exception("未达到可查询门槛, (PTT 7.0)")
+            else -> throw AlertException(response["message"].asString)
+        }
+    }
+
+    private suspend fun getResponse(path: String, vararg params: Pair<String, Any>): HttpResponse {
         val url = DataSystem.PluginConfig.apiUrl
         val token = DataSystem.PluginConfig.apiToken
         return withContext(Dispatchers.Default) {
@@ -60,7 +80,9 @@ object Inquirer {
                 params.forEach { (key, value) -> parameter(key, value) }
                 header("User-Agent", token)
             }
-            if (response.status.value == 404) null else response
+            if (response.status.value == 404)
+                throw AlertException("address or token broken")
+            else response
         }
     }
 }
