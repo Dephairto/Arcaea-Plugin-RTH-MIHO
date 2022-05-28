@@ -40,6 +40,7 @@ object ArcaeaPluginRTHMIHO : KotlinPlugin(
     }
 ) {
     override fun onEnable() {
+        DataSystem.pluginDataConfigList.forEach { it.reload() }
         logger.info { "Plugin loaded" }
     }
 }
