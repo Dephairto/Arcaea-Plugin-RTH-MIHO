@@ -32,3 +32,8 @@ repositories {
     maven("https://maven.aliyun.com/repository/public")
     mavenCentral()
 }
+
+dependencies {
+    implementation("com.google.code.gson:gson:2.9.0")
+    implementation("io.ktor:ktor-client-content-negotiation:2.0.1")
+}

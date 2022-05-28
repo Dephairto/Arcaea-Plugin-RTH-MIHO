@@ -25,7 +25,10 @@
 
 package rthmiho
 
+import com.google.gson.Gson
+import com.google.gson.JsonObject
 import io.ktor.client.*
+import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import kotlinx.coroutines.Dispatchers
@@ -33,6 +36,21 @@ import kotlinx.coroutines.withContext
 
 object Inquirer {
     private val client = HttpClient()
+
+    class UserInfo(data: JsonObject) {
+        val name: String = data["name"].asString
+        val id: String = data["code"].asString
+        val rating: Int = data["rating"].asInt
+    }
+
+    suspend fun checkAccount(idOrUserName: String): UserInfo? {
+        val path = "user/info"
+        val httpResponse = getResponse(path, Pair("user", idOrUserName)) ?: return null
+        val response = Gson().fromJson(httpResponse.body<String>(), JsonObject::class.java)
+        if (response["status"].asInt != 0) return null
+        val data = response["content"].asJsonObject["account_info"].asJsonObject
+        return UserInfo(data)
+    }
 
     private suspend fun getResponse(path: String, vararg params: Pair<String, Any>): HttpResponse? {
         val url = DataSystem.ApiConfig.url
