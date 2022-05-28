@@ -43,7 +43,7 @@ object Inquirer {
         val rating: Int = data["rating"].asInt
     }
 
-    suspend fun checkAccount(idOrUserName: String): UserInfo? {
+    suspend fun getUserInfo(idOrUserName: String): UserInfo? {
         val path = "user/info"
         val httpResponse = getResponse(path, Pair("user", idOrUserName)) ?: return null
         val response = Gson().fromJson(httpResponse.body<String>(), JsonObject::class.java)
@@ -53,8 +53,8 @@ object Inquirer {
     }
 
     private suspend fun getResponse(path: String, vararg params: Pair<String, Any>): HttpResponse? {
-        val url = DataSystem.ApiConfig.url
-        val token = DataSystem.ApiConfig.token
+        val url = DataSystem.PluginConfig.apiUrl
+        val token = DataSystem.PluginConfig.apiToken
         return withContext(Dispatchers.Default) {
             val response: HttpResponse = client.get(url + path) {
                 params.forEach { (key, value) -> parameter(key, value) }
