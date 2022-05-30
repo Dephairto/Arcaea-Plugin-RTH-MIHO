@@ -132,6 +132,16 @@ object Inquirer {
         }
     }
 
+    suspend fun getRecord(id: String, songName: String, difficulty: String): Record {
+        val response = getResponse(
+            "user/best",
+            Pair("usercode", id),
+            Pair("songname", songName),
+            Pair("difficultly", difficulty)
+        ).toJson<JsonObject>()
+        return checkStatus(response) { Record(this["record"].asJsonObject, SongInfo(this["song_info"].asJsonObject)) }
+    }
+
     class AlertException(val innerMessage: String) : Exception("API失效")
 
     private fun <T> checkStatus(response: JsonObject, run: JsonObject.() -> T): T {
