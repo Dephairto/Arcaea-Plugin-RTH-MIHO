@@ -79,15 +79,19 @@ object Inquirer {
         val lost = data["near_count"].asInt
     }
 
+    class B30(
+        val b30Ptt: Double,
+        val r10Ptt: Double,
+        val userInfo: UserInfo,
+        val recordList: List<Record>,
+    )
+
     suspend fun getUserInfo(idOrUserName: String, isId: Boolean = false): UserInfo {
         val response = getResponse(
             "user/info",
             Pair(if (isId) "usercode" else "user", idOrUserName)
         ).toJson<JsonObject>()
-        return checkStatus(response) {
-            val data = response["content"].asJsonObject["account_info"].asJsonObject
-            UserInfo(data)
-        }
+        return checkStatus(response) { UserInfo(this["account_info"].asJsonObject) }
     }
 
     suspend fun getRecent(id: String): Record {
@@ -99,21 +103,40 @@ object Inquirer {
         ).toJson<JsonObject>()
         return checkStatus(response) {
             try {
-                val data = response["content"].asJsonObject
-                val recentData = data["recent"].asJsonArray[0].asJsonObject
-                val songInfoData = data["songinfo"].asJsonArray[0].asJsonObject
-                Record(recentData, SongInfo(songInfoData))
+                val recentData = this["recent"].asJsonArray[0].asJsonObject
+                val songInfoData = this["songinfo"].asJsonArray[0].asJsonObject
+                Record(recentData, SongInfo(songInfoData), UserInfo(this["account_info"].asJsonObject))
             } catch (e: IndexOutOfBoundsException) {
                 throw Exception("没有recent成绩")
             }
         }
     }
 
+    suspend fun getB30(id: String): B30 {
+        val response = getResponse(
+            "user/best30",
+            Pair("usercode", id),
+            Pair("withsonginfo", true)
+        ).toJson<JsonObject>()
+        return checkStatus(response) {
+            B30(
+                this["best30_avg"].asDouble,
+                this["recent10_avg"].asDouble,
+                UserInfo(this["account_info"].asJsonObject),
+                this["best30_list"].asJsonArray
+                    .zip(this["best30_songinfo"].asJsonArray)
+                    .map { (data, songInfoData) ->
+                        Record(data.asJsonObject, SongInfo(songInfoData.asJsonObject))
+                    }
+            )
+        }
+    }
+
     class AlertException(val innerMessage: String) : Exception("API失效")
 
-    private fun <T> checkStatus(response: JsonObject, run: () -> T): T {
+    private fun <T> checkStatus(response: JsonObject, run: JsonObject.() -> T): T {
         when (response["status"].asInt) {
-            0 -> return run()
+            0 -> return response["content"].asJsonObject.run()
 
             -1, -2, -3 -> throw Exception("账号信息未找到")
             -4 -> throw Exception("有多个重名账号")
