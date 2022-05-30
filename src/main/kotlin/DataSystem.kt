@@ -49,6 +49,7 @@ object DataSystem {
         val apiToken: String by value()
 
         private val alertList: MutableList<Pair<String, String>> by value()
+
         fun setAlert(alertId: String, alertType: String) {
             alertList.add(Pair(alertId, alertType))
         }
