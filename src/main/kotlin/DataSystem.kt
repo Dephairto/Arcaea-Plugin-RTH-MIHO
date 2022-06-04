@@ -59,14 +59,13 @@ object DataSystem {
         }
     }
 
-    object GameResource {
+    object File {
+        private fun getResource(src: String) =
+            this::class.asResourceContainer().getResource(src)
+
+        private fun getResourceAsStream(src: String) =
+            this::class.asResourceContainer().getResourceAsStream(src)
+
+        private fun getImageSource(src: String) = getResourceAsStream(src).use { ImageIO.read(it) }
     }
-
-    private fun getResource(src: String) =
-        this::class.asResourceContainer().getResource(src)
-
-    private fun getResourceAsStream(src: String) =
-        this::class.asResourceContainer().getResourceAsStream(src)
-
-    private fun getImageSource(src: String) = getResourceAsStream(src).use { ImageIO.read(it) }
 }

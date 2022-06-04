@@ -34,62 +34,15 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import rthmiho.GameResource.B30
+import rthmiho.GameResource.Record
+import rthmiho.GameResource.SongInfo
+import rthmiho.GameResource.UserInfo
 import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
-import java.text.SimpleDateFormat
-import java.util.*
 import javax.imageio.ImageIO
 
 object Inquirer {
-    class UserInfo(data: JsonObject) {
-        val name: String = data["name"].asString
-        val id: String = data["code"].asString
-        val rating = data["rating"].asInt
-        val character = data["character"].asInt
-        val isAwakened = data["is_char_uncapped"].asBoolean == data["is_char_uncapped_override"].asBoolean
-    }
-
-    class SongInfo(data: JsonObject) {
-        val name: String = data["name_en"].asString
-        val bpm: String = data["bpm"].asString
-        val time = data["time"].asInt.let { "%d:%2d".format(it / 60, it % 60) }
-        val imageOverride = data["jacket_override"].asBoolean
-
-        val set: String = data["set_friendly"].asString
-        val worldUnlock = data["world_unlock"].asBoolean
-        val remoteDownload = data["remote_download"].asBoolean
-        val date: String = SimpleDateFormat("yyyy/MM/dd").format(Date(data["date"].asLong * 1000))
-        val version: String = data["version"].asString
-
-        val side = if (data["side"].asInt == 0) "光芒侧" else "纷争侧"
-        val bg: String = data["bg"].asString.ifEmpty { if (side == "光芒侧") "base_light" else "base_conflict" }
-        val rating = data["rating"].asInt
-        val note = data["note"].asInt
-
-        val artist: String = data["artist"].asString
-        val chartDesigner: String = data["chart_designer"].asString
-        val imageDesigner: String = data["jacket_designer"].asString.ifEmpty { "未知" }
-    }
-
-    class Record(data: JsonObject, val songInfo: SongInfo, val userInfo: UserInfo? = null) {
-        val score = data["score"].asInt
-        val rating = data["rating"].asDouble
-        val songId: String = data["song_id"].asString
-        val difficulty = data["difficulty"].asInt
-        val timePlayed = data["time_played"].asLong
-        val perfectP = data["shiny_perfect_count"].asInt
-        val perfect = data["perfect_count"].asInt
-        val far = data["near_count"].asInt
-        val lost = data["near_count"].asInt
-    }
-
-    class B30(
-        val b30Ptt: Double,
-        val r10Ptt: Double,
-        val userInfo: UserInfo,
-        val recordList: List<Record>,
-    )
-
     suspend fun getUserInfo(idOrUserName: String, isId: Boolean = false): UserInfo {
         val response = getResponse(
             "user/info",
