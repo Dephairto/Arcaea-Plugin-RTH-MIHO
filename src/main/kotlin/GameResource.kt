@@ -72,4 +72,12 @@ object GameResource {
         val userInfo: UserInfo,
         val recordList: List<Record>,
     )
+
+    val getSongInfo = Inquirer::getSongInfo
+
+    val getRecord = Inquirer::getRecord
+
+    val getRecent = Inquirer::getRecent
+
+    val getB30 = Inquirer::getB30
 }
