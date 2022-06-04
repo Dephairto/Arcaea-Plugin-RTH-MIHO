@@ -18,7 +18,7 @@
  */
 
 /*
- * DataSystem - 本地数据读取存储系统
+ * DataSystem.kt - 本地数据读取存储系统
  *
  * Author: Dephairto
  */
@@ -32,21 +32,31 @@ import net.mamoe.mirai.console.plugin.ResourceContainer.Companion.asResourceCont
 import javax.imageio.ImageIO
 
 object DataSystem {
-    val pluginDataConfigList = listOf(UserData, ApiConfig)
+    val pluginDataConfigList = listOf(UserData, PluginConfig)
 
     object UserData : AutoSavePluginData("userData") {
         class UserData(
-            val arcId: Long,
-            val lastInquiryTime: Long,
-            val InquiryTimes: Int
+            var arcId: String,
+            var lastInquiryTime: Long,
+            var InquiryTimes: Int
         )
 
         val userData: MutableMap<Long, UserData> by value()
     }
 
-    object ApiConfig : AutoSavePluginConfig("apiConfig") {
-        val url: String by value()
-        val token: String by value()
+    object PluginConfig : AutoSavePluginConfig("apiConfig") {
+        val apiUrl: String by value()
+        val apiToken: String by value()
+
+        private val alertList: MutableList<Pair<String, String>> by value()
+
+        fun setAlert(alertId: String, alertType: String) {
+            alertList.add(Pair(alertId, alertType))
+        }
+
+        fun removeAlert(alertId: String, alertType: String) {
+            alertList.removeIf { it == Pair(alertId, alertType) }
+        }
     }
 
     object GameResource {
