@@ -27,14 +27,18 @@ package rthmiho
 
 import com.google.gson.Gson
 import com.google.gson.JsonObject
+import com.google.gson.JsonSyntaxException
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.awt.image.BufferedImage
+import java.io.ByteArrayInputStream
 import java.text.SimpleDateFormat
 import java.util.*
+import javax.imageio.ImageIO
 
 object Inquirer {
     class UserInfo(data: JsonObject) {
@@ -42,7 +46,7 @@ object Inquirer {
         val id: String = data["code"].asString
         val rating = data["rating"].asInt
         val character = data["character"].asInt
-        val isUncapped = data["is_char_uncapped"].asBoolean == data["is_char_uncapped_override"].asBoolean
+        val isAwakened = data["is_char_uncapped"].asBoolean == data["is_char_uncapped_override"].asBoolean
     }
 
     class SongInfo(data: JsonObject) {
@@ -152,6 +156,19 @@ object Inquirer {
         }
     }
 
+    suspend fun getCharacterImage(character: Int, isAwakened: Boolean): BufferedImage {
+        val response = getResponse(
+            "assets/char",
+            Pair("partner", character),
+            Pair("awakened", isAwakened)
+        )
+        try {
+            throw AlertException(response.toJson<JsonObject>()["message"].asString)
+        } catch (e: JsonSyntaxException) {
+            return response.toImage()
+        }
+    }
+
     class AlertException(val innerMessage: String) : Exception("API失效")
 
     private fun <T> checkStatus(response: JsonObject, run: JsonObject.() -> T): T {
@@ -188,5 +205,10 @@ object Inquirer {
     }
 
     private suspend inline fun <reified T> HttpResponse.toJson() =
-        Gson().fromJson(this.body<String>(), T::class.java)
+        Gson().fromJson(body<String>(), T::class.java)
+
+    private suspend fun HttpResponse.toImage() =
+        withContext(Dispatchers.IO) {
+            ImageIO.read(ByteArrayInputStream(this@toImage.body<ByteArray>()))
+        }
 }
