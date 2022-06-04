@@ -171,7 +171,7 @@ object Inquirer {
 
     suspend fun getSongImage(songId: String, difficulty: String): BufferedImage {
         val response = getResponse(
-            "assets/char",
+            "assets/song",
             Pair("songid", songId),
             Pair("difficulty", difficulty)
         )
