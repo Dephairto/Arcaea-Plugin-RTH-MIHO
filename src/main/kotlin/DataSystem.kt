@@ -80,6 +80,11 @@ object DataSystem {
             file.writeText(text)
         }
 
+        fun saveImage(src: String, image: BufferedImage) {
+            val file = ArcaeaPluginRTHMIHO.resolveDataFile(src)
+            ImageIO.write(image, "png", file)
+        }
+
         private fun getResource(src: String) =
             this::class.asResourceContainer().getResource(src)
 
