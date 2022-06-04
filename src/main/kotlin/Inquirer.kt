@@ -109,6 +109,10 @@ object Inquirer {
         }
     }
 
+    suspend fun getSongInfoList(): String {
+        return getResponse("song/list").body()
+    }
+
     suspend fun getCharacterImage(character: Int, isAwakened: Boolean): BufferedImage {
         val response = getResponse(
             "assets/char",
