@@ -60,6 +60,13 @@ object DataSystem {
     }
 
     object File {
+        fun getFileAsString(src: String): String? {
+            val file = ArcaeaPluginRTHMIHO.resolveDataFile(src)
+            return if (file.exists())
+                file.bufferedReader().readText()
+            else null
+        }
+
         private fun getResource(src: String) =
             this::class.asResourceContainer().getResource(src)
 
