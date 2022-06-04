@@ -29,6 +29,7 @@ import net.mamoe.mirai.console.data.AutoSavePluginConfig
 import net.mamoe.mirai.console.data.AutoSavePluginData
 import net.mamoe.mirai.console.data.value
 import net.mamoe.mirai.console.plugin.ResourceContainer.Companion.asResourceContainer
+import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
 
 object DataSystem {
@@ -64,6 +65,13 @@ object DataSystem {
             val file = ArcaeaPluginRTHMIHO.resolveDataFile(src)
             return if (file.exists())
                 file.bufferedReader().readText()
+            else null
+        }
+
+        fun getFileAsImage(src: String): BufferedImage? {
+            val file = ArcaeaPluginRTHMIHO.resolveDataFile(src)
+            return if (file.exists())
+                ImageIO.read(file)
             else null
         }
 
