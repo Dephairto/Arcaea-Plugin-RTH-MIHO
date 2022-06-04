@@ -64,7 +64,7 @@ object DataSystem {
         fun getFileAsString(src: String): String? {
             val file = ArcaeaPluginRTHMIHO.resolveDataFile(src)
             return if (file.exists())
-                file.bufferedReader().readText()
+                file.readText()
             else null
         }
 
@@ -73,6 +73,11 @@ object DataSystem {
             return if (file.exists())
                 ImageIO.read(file)
             else null
+        }
+
+        fun saveTextFile(src: String, text: String) {
+            val file = ArcaeaPluginRTHMIHO.resolveDataFile(src)
+            file.writeText(text)
         }
 
         private fun getResource(src: String) =
