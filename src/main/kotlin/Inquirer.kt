@@ -169,6 +169,19 @@ object Inquirer {
         }
     }
 
+    suspend fun getSongImage(songId: String, difficulty: String): BufferedImage {
+        val response = getResponse(
+            "assets/char",
+            Pair("songid", songId),
+            Pair("difficulty", difficulty)
+        )
+        try {
+            throw AlertException(response.toJson<JsonObject>()["message"].asString)
+        } catch (e: JsonSyntaxException) {
+            return response.toImage()
+        }
+    }
+
     class AlertException(val innerMessage: String) : Exception("API失效")
 
     private fun <T> checkStatus(response: JsonObject, run: JsonObject.() -> T): T {
