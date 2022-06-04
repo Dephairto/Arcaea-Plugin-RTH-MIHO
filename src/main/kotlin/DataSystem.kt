@@ -61,28 +61,18 @@ object DataSystem {
     }
 
     object File {
-        fun getFileAsString(src: String): String? {
-            val file = ArcaeaPluginRTHMIHO.resolveDataFile(src)
-            return if (file.exists())
-                file.readText()
-            else null
+        fun getFile(src: String) = ArcaeaPluginRTHMIHO.resolveDataFile(src)
+
+        fun java.io.File.asString() = if (exists()) readText() else null
+
+        fun java.io.File.asImage() = if (exists()) ImageIO.read(this) else null
+
+        fun java.io.File.saveText(text: String) {
+            writeText(text)
         }
 
-        fun getFileAsImage(src: String): BufferedImage? {
-            val file = ArcaeaPluginRTHMIHO.resolveDataFile(src)
-            return if (file.exists())
-                ImageIO.read(file)
-            else null
-        }
-
-        fun saveTextFile(src: String, text: String) {
-            val file = ArcaeaPluginRTHMIHO.resolveDataFile(src)
-            file.writeText(text)
-        }
-
-        fun saveImage(src: String, image: BufferedImage) {
-            val file = ArcaeaPluginRTHMIHO.resolveDataFile(src)
-            ImageIO.write(image, "png", file)
+        fun java.io.File.saveImage(image: BufferedImage) {
+            ImageIO.write(image, "png", this)
         }
 
         private fun getResource(src: String) =
