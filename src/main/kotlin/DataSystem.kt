@@ -57,11 +57,7 @@ object DataSystem {
     object File {
         fun getFile(src: String) = ArcaeaPluginRTHMIHO.resolveDataFile(src)
 
-        fun java.io.File.asString() = if (exists()) readText() else null
-
         fun java.io.File.asImage() = if (exists()) ImageIO.read(this) else null
-
-        fun java.io.File.saveText(text: String) = writeText(text)
 
         fun java.io.File.saveImage(image: BufferedImage) =
             ImageIO.write(image, "png", this)
