@@ -17,9 +17,18 @@
  * along with Arcaea-Plugin-RTH-MIHO. If not, see <https://www.gnu.org/licenses/>.
  */
 
+/*
+ * GameResource.kt - 游戏相关
+ *
+ * Author: Dephairto
+ */
+
 package rthmiho
 
 import com.google.gson.JsonObject
+import rthmiho.DataSystem.File.asImage
+import rthmiho.DataSystem.File.saveImage
+import java.awt.image.BufferedImage
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -73,6 +82,8 @@ object GameResource {
         val recordList: List<Record>,
     )
 
+    val getUserInfo = Inquirer::getUserInfo
+
     val getSongInfo = Inquirer::getSongInfo
 
     val getRecord = Inquirer::getRecord
@@ -80,4 +91,20 @@ object GameResource {
     val getRecent = Inquirer::getRecent
 
     val getB30 = Inquirer::getB30
+
+    suspend fun getCharacterImage(character: Int, isAwakened: Boolean): BufferedImage {
+        val path = "gameResource/characters/$character${if (isAwakened) "_a" else ""}.png"
+        return DataSystem.File.getFile(path).run {
+            this.asImage() ?: Inquirer.getCharacterImage(character, isAwakened)
+                .apply { this@run.saveImage(this) }
+        }
+    }
+
+    suspend fun getSongImage(songId: String, difficulty: String): BufferedImage {
+        val path = "gameResource/songImages/${songId}_$difficulty.png"
+        return DataSystem.File.getFile(path).run {
+            this.asImage() ?: Inquirer.getSongImage(songId, difficulty)
+                .apply { this@run.saveImage(this) }
+        }
+    }
 }

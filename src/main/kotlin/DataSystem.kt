@@ -36,16 +36,10 @@ object DataSystem {
     val pluginDataConfigList = listOf(UserData, PluginConfig)
 
     object UserData : AutoSavePluginData("userData") {
-        class UserData(
-            var arcId: String,
-            var lastInquiryTime: Long,
-            var InquiryTimes: Int
-        )
-
-        val userData: MutableMap<Long, UserData> by value()
+        val userData: MutableMap<Long, Long> by value()
     }
 
-    object PluginConfig : AutoSavePluginConfig("apiConfig") {
+    object PluginConfig : AutoSavePluginConfig("pluginConfig") {
         val apiUrl: String by value()
         val apiToken: String by value()
 
@@ -67,13 +61,10 @@ object DataSystem {
 
         fun java.io.File.asImage() = if (exists()) ImageIO.read(this) else null
 
-        fun java.io.File.saveText(text: String) {
-            writeText(text)
-        }
+        fun java.io.File.saveText(text: String) = writeText(text)
 
-        fun java.io.File.saveImage(image: BufferedImage) {
+        fun java.io.File.saveImage(image: BufferedImage) =
             ImageIO.write(image, "png", this)
-        }
 
         private fun getResource(src: String) =
             this::class.asResourceContainer().getResource(src)

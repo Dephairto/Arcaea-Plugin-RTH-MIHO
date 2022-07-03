@@ -27,7 +27,6 @@ package rthmiho
 
 import com.google.gson.Gson
 import com.google.gson.JsonObject
-import com.google.gson.JsonSyntaxException
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
@@ -43,10 +42,10 @@ import java.io.ByteArrayInputStream
 import javax.imageio.ImageIO
 
 object Inquirer {
-    suspend fun getUserInfo(idOrUserName: String, isId: Boolean = false): UserInfo {
+    suspend fun getUserInfo(idOrUserName: String): UserInfo {
         val response = getResponse(
             "user/info",
-            Pair(if (isId) "usercode" else "user", idOrUserName)
+            Pair("user", idOrUserName)
         ).toJson<JsonObject>()
         return checkStatus(response) { UserInfo(this["account_info"].asJsonObject) }
     }
@@ -94,9 +93,16 @@ object Inquirer {
             "user/best",
             Pair("usercode", id),
             Pair("songname", songName),
-            Pair("difficultly", difficulty)
+            Pair("difficultly", difficulty),
+            Pair("withsonginfo", true)
         ).toJson<JsonObject>()
-        return checkStatus(response) { Record(this["record"].asJsonObject, SongInfo(this["song_info"].asJsonObject)) }
+        return checkStatus(response) {
+            Record(
+                this["record"].asJsonObject,
+                SongInfo(this["song_info"].asJsonObject),
+                UserInfo(this["account_info"].asJsonObject)
+            )
+        }
     }
 
     suspend fun getSongInfo(songName: String, difficulty: String): SongInfo {
@@ -109,10 +115,6 @@ object Inquirer {
         }
     }
 
-    suspend fun getSongInfoList(): String {
-        return getResponse("song/list").body()
-    }
-
     suspend fun getCharacterImage(character: Int, isAwakened: Boolean): BufferedImage {
         val response = getResponse(
             "assets/char",
@@ -121,7 +123,7 @@ object Inquirer {
         )
         try {
             throw AlertException(response.toJson<JsonObject>()["message"].asString)
-        } catch (e: JsonSyntaxException) {
+        } catch (e: Exception) {
             return response.toImage()
         }
     }
@@ -134,7 +136,7 @@ object Inquirer {
         )
         try {
             throw AlertException(response.toJson<JsonObject>()["message"].asString)
-        } catch (e: JsonSyntaxException) {
+        } catch (e: Exception) {
             return response.toImage()
         }
     }
@@ -148,12 +150,12 @@ object Inquirer {
             -1, -2, -3 -> throw Exception("账号信息未找到")
             -4 -> throw Exception("有多个重名账号")
             -5, -6, -7 -> throw Exception("未找到歌曲")
-            -8 -> throw Exception("太多相关歌曲，请修改指令")
+            -8 -> throw Exception("太多相关记录，请修改指令")
             -14 -> throw Exception("这首歌没有Beyond难度")
             -15 -> throw Exception("尚未游玩此歌曲")
             -16 -> throw Exception("查询账号被屏蔽")
             -17 -> throw Exception("查询B30失败")
-            -23 -> throw Exception("未达到可查询门槛, (PTT 7.0)")
+            -23 -> throw Exception("未达到可查询门槛 (PTT 7.0)")
             else -> throw AlertException(response["message"].asString)
         }
     }
@@ -164,9 +166,9 @@ object Inquirer {
         val url = DataSystem.PluginConfig.apiUrl
         val token = DataSystem.PluginConfig.apiToken
         return withContext(Dispatchers.Default) {
-            val response: HttpResponse = client.get(url + path) {
-                params.forEach { (key, value) -> parameter(key, value) }
+            val response: HttpResponse = client.get("$url/$path") {
                 header("User-Agent", token)
+                params.forEach { (key, value) -> parameter(key, value) }
             }
             if (response.status.value == 404)
                 throw AlertException("address or token broken")
@@ -179,6 +181,6 @@ object Inquirer {
 
     private suspend fun HttpResponse.toImage() =
         withContext(Dispatchers.IO) {
-            ImageIO.read(ByteArrayInputStream(this@toImage.body<ByteArray>()))
+            ImageIO.read(ByteArrayInputStream(body<ByteArray>()))
         }
 }
